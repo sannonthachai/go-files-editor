@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    secret.reloader.stakater.com/reload: "dotnetcert-secret-env,mol-web-revoke-workpermit-secret-env"
+    configmap.reloader.stakater.com/reload: "generic-config"
+
+  name: mol-web-revoke-workpermit
+  labels:
+    app: mol-web-revoke-workpermit
+spec:
+  selector:
+    matchLabels:
+      app: mol-web-revoke-workpermit
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mol-web-revoke-workpermit
+        group: iden
+        team: oa
+    spec:
+      terminationGracePeriodSeconds: 75
+      containers:
+        - name: mol-web-revoke-workpermit
+          image: mol_web_revoke_workpermit-image
+          imagePullPolicy: IfNotPresent
+            #command: [ "tail" ]
+            #args: ["-f", "/dev/null"]
+          ports:
+            - name: http-port
+              containerPort: 80
+                #          livenessProbe:
+                #            failureThreshold: 2
+                #            httpGet:
+                #              path: /_health
+                #              port: http-port
+                #            initialDelaySeconds: 30
+                #            periodSeconds: 20
+                #          readinessProbe:
+                #            failureThreshold: 5
+                #            httpGet:
+                #              path: /_health
+                #              port: http-port
+                #            initialDelaySeconds: 10
+                #            periodSeconds: 10
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh","-c","sleep 10"]
+          resources:
+            requests:
+              cpu: "3m"
+              memory: "50Mi"
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: APP_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: TEAM_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['team']
+            - name: GROUP_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['group']
+            - name: ServiceName
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+          envFrom:
+            - configMapRef:
+                name: generic-config
+            - configMapRef:
+                name: mol-web-revoke-workpermit-config-env
+            - secretRef:
+                name: mol-web-revoke-workpermit-secret-env
+            - secretRef:
+                name: vault-container-secret
+          volumeMounts:
+            - mountPath: /app/certs/certificate.pfx
+              name: dotnet
+              subPath: certificate.pfx
+      volumes:
+        - name: dotnet
+          secret:
+            secretName: dotnetcert-secret-env
