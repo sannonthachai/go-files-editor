@@ -90,3 +90,4 @@ spec:
         - name: dotnet
           secret:
             secretName: dotnetcert-secret-env
+test1234

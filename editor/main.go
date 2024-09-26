@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -14,18 +15,24 @@ func main() {
 
 	for _, item := range items {
 		if item.IsDir() {
-			myFile := item.Name() + "/deployment.yaml"
+			myFile := item.Name() + "/secret/config.yaml"
 
 			lines := forloopFile(myFile)
 
-			for i, line := range lines {
-				if strings.Contains(line, "fieldPath: metadata.labels['group']") {
-					lines[i] = `                  fieldPath: metadata.labels['group']
-            - name: ServiceName
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.labels['app']`
+			for i, _ := range lines {
+
+				if i == len(lines)-1 {
+					lines[i] = fmt.Sprintf(`ServiceName=%s
+`, item.Name())
 				}
+
+				// 	if strings.Contains(line, "fieldPath: metadata.labels['group']") {
+				// 		lines[i] = `                  fieldPath: metadata.labels['group']
+				// - name: ServiceName
+				//   valueFrom:
+				//     fieldRef:
+				//       fieldPath: metadata.labels['app']`
+				// 	}
 			}
 
 			output := strings.Join(lines, "\n")
