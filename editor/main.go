@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -22,8 +21,9 @@ func main() {
 			for i, _ := range lines {
 
 				if i == len(lines)-1 {
-					lines[i] = fmt.Sprintf(`ServiceName=%s
-`, item.Name())
+					lines = append(lines, "ServiceName="+item.Name())
+					// 					lines[i] = fmt.Sprintf(`ServiceName=%s
+					// `, item.Name())
 				}
 
 				// 	if strings.Contains(line, "fieldPath: metadata.labels['group']") {
